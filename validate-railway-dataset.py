@@ -396,7 +396,7 @@ def run(
         # recall = tp / (tp + fn)
         # f1 = 2 * ((precision * recall) / (precision + recall))
 
-        new_time +=  class_name + ': [TP - ' + str(tp_current) + ', TN - ' + str(tn_current) + ', FP - ' + str(fp_current) + ', FN - ' + str(fn_current) + ']\n'
+        new_time +=  class_name + ': [TP - ' + str(tp_current) + ', FP - ' + str(fp_current) + ', FN - ' + str(fn_current) + ']\n'
     
     f.write(new_time + '\n')
 
@@ -408,15 +408,17 @@ def run(
         class_index_current = list_of_names.index(class_name)
         ap_current_75 = ap_copy[class_index_current, 5]
         ap_avg = ap_copy[class_index_current, :].mean()
-        new_time1 +=  class_name + ': [AP@.75 - ' + str(ap_current_75) + ', AP@.50:.95 - ' + str(ap_avg) + ']\n'
+        new_time1 +=  class_name + ': [AP@.75 - ' + str(round(float(ap_current_75), 4)) + ', AP@.50:.95 - ' + str(round(float(ap_avg), 4)) + ']\n'
 
     map_overall = ap_copy.mean()
     map_overall_75 = ap_copy[: ,5].mean()
-    new_time1 += 'Total through all classes: mAP@.75 - ' + str(map_overall_75) + '\n'
+    new_time1 += 'Total through all classes: mAP@.75 - ' + str(round(float(map_overall_75), 4)) + '\n'
 
     f.write(new_time1 + '\n')
 
     f.close()
+
+
 
 
 
