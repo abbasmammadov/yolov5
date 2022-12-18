@@ -483,9 +483,9 @@ def parse_opt():
     parser.add_argument('--weights', nargs='+', type=str, default=ROOT / 'yolov5s.pt', help='model path(s)')
     parser.add_argument('--batch-size', type=int, default=1, help='batch size')
     parser.add_argument('--imgsz', '--img', '--img-size', type=int, default=640, help='inference size (pixels)')
-    parser.add_argument('--conf-thres', type=float, default=0.45, help='confidence threshold') # 0.001
-    parser.add_argument('--iou-thres', type=float, default=0.45, help='NMS IoU threshold') # 0.6
-    parser.add_argument('--max-det', type=int, default=1000, help='maximum detections per image') # 300
+    parser.add_argument('--conf-thres', type=float, default=0.45, help='confidence threshold') # 0.001 for val.py and 0.25 for detect.py
+    parser.add_argument('--iou-thres', type=float, default=0.45, help='NMS IoU threshold') # 0.6 for val.py and 0.45 for detect.py
+    parser.add_argument('--max-det', type=int, default=1000, help='maximum detections per image') # 300 for val.py and 1000 for detect.py
     parser.add_argument('--task', default='test', help='train, val, test, speed or study')
     parser.add_argument('--device', default='', help='cuda device, i.e. 0 or 0,1,2,3 or cpu')
     parser.add_argument('--workers', type=int, default=8, help='max dataloader workers (per RANK in DDP mode)')
