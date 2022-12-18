@@ -28,6 +28,7 @@ from pathlib import Path
 import numpy as np
 import torch
 from tqdm import tqdm
+import pandas as pd
 
 FILE = Path(__file__).resolve()
 ROOT = FILE.parents[0]  # YOLOv5 root directory
@@ -184,6 +185,7 @@ def run(
     seen = 0
     confusion_matrix = ConfusionMatrix(nc=nc)
     names = model.names if hasattr(model, 'names') else model.module.names  # get class names
+    list_of_names = [names[int(i)] for i in range(len(names))]
     if isinstance(names, (list, tuple)):  # old format
         names = dict(enumerate(names))
     class_map = coco80_to_coco91_class() if is_coco else list(range(1000))
@@ -273,6 +275,24 @@ def run(
     stats = [torch.cat(x, 0).cpu().numpy() for x in zip(*stats)]  # to numpy
     if len(stats) and stats[0].any():
         tp, fp, p, r, f1, ap, ap_class = ap_per_class(*stats, plot=plots, save_dir=save_dir, names=names)
+
+        # decomment in case you want to see very detailed analysis   
+        # column_names = list_of_names
+        # row_names = ["mAP@0.50", "mAP@0.55", "mAP@0.60", "mAP@0.65", "mAP@0.70", "mAP@0.75", "mAP@0.80", "mAP@0.85", "mAP@0.90", "mAP@0.95"]
+
+        # df = pd.DataFrame(ap.T, columns = column_names, index = row_names)
+        # print()
+        # print()
+        # with open('mycsvfile.csv', 'w') as f:  # if you want to append to the file
+        #     df.to_csv(f)
+        # print()
+        # print()
+        # print(df)  # class-wise
+        # print()
+        # print(df.mean(axis=1))  # mAP per IoU
+        # print()
+        # print()
+
         ap50, ap = ap[:, 0], ap.mean(1)  # AP@0.5, AP@0.5:0.95
         mp, mr, map50, map = p.mean(), r.mean(), ap50.mean(), ap.mean()
     nt = np.bincount(stats[3].astype(int), minlength=nc)  # number of targets per class
