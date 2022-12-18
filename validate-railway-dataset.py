@@ -197,9 +197,15 @@ def run(
     f = open('test.txt', 'a')
     nd_str = str(timeStamped()) + ' python validate-railway-dataset.py --data path/to/data.yaml --weights path/to/weights --task test/or/val\n\n'
     f.write(nd_str)
+    total_ground_truth = 0
+    total_predicted = 0
+    avg_fps = 0
+    total = 0
     for batch_i, (im, targets, paths, shapes) in enumerate(pbar):
+        total += 1
         main_str = ''
         line_for_gt = ''
+        total_ground_truth += len(targets)
         for trg in range(len(targets)):
             line_for_gt += '(' + str(names[int(targets[trg][1])]) + ' bbox-' + str(targets[trg][2:]) + '); '
 
@@ -249,6 +255,7 @@ def run(
         for i, detections_det in enumerate(pred_like_detect):  # per image
             im0 = cv2.imread(Path(paths[0]))
             line = ''
+            total_predicted += len(detections_det)
             if len(detections_det):
                 gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]
                 detections_det[:, :4] = scale_coords(im.shape[2:], detections_det[:, :4], im0.shape).round()
@@ -320,6 +327,7 @@ def run(
         t = tuple(x.t / seen * 1E3 for x in dt)
         time_inf = t[1]
         fps = 1000 / time_inf
+        avg_fps += fps
 
         f.write(main_str + f'Time: {time_inf} ms  FPS: {fps} fps \n\n')
 
@@ -395,9 +403,17 @@ def run(
         # precision = tp / (tp + fp)
         # recall = tp / (tp + fn)
         # f1 = 2 * ((precision * recall) / (precision + recall))
+        current_class_total_predictions = tp_current + fp_current
+        current_class_total_ground_truth = tp_current + fn_current
 
         new_time +=  class_name + ': [TP - ' + str(tp_current) + ', FP - ' + str(fp_current) + ', FN - ' + str(fn_current) + ']\n'
+        new_time += 'Total number of Ground Truth objects: ' + str(current_class_total_ground_truth) + '\n'
+        new_time += 'Total number of Predicted objects: ' + str(current_class_total_predictions) + '\n'
+
     
+    # new_time += 'Total number of Ground Truth objects: ' + str(total_ground_truth) + '\n'
+    # new_time += 'Total number of Predicted objects: ' + str(total_predicted) + '\n'
+
     f.write(new_time + '\n')
 
     # lets now give mAP values per class
@@ -412,13 +428,13 @@ def run(
 
     map_overall = ap_copy.mean()
     map_overall_75 = ap_copy[: ,5].mean()
-    new_time1 += 'Total through all classes: mAP@.75 - ' + str(round(float(map_overall_75), 4)) + '\n'
+    avg_fps /= total
+    new_time1 += 'Total through mAP all classes: mAP@.75 - ' + str(round(float(map_overall_75), 4)) + '\n'
+    new_time1 += 'Average FPS: ' + str(round(float(avg_fps), 4)) + '\n'
 
     f.write(new_time1 + '\n')
 
     f.close()
-
-
 
 
 
