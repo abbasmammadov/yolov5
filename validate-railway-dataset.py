@@ -424,13 +424,13 @@ def run(
         class_index_current = list_of_names.index(class_name)
         ap_current_75 = ap_copy[class_index_current, 5]
         ap_avg = ap_copy[class_index_current, :].mean()
-        new_time1 +=  class_name + ': [AP@.75 - ' + str(round(float(ap_current_75), 4)) + ', AP@.50:.95 - ' + str(round(float(ap_avg), 4)) + ']\n'
+        new_time1 +=  class_name + ': [AP@.75 - ' + str(format(float(ap_current_75), '.4f')) + ', AP@.50:.95 - ' + str(format(float(ap_avg), '.4f')) + ']\n'
 
     map_overall = ap_copy.mean()
     map_overall_75 = ap_copy[: ,5].mean()
     avg_fps /= total
-    new_time1 += 'Total through mAP all classes: mAP@.75 - ' + str(round(float(map_overall_75), 4)) + '\n'
-    new_time1 += 'Average FPS: ' + str(round(float(avg_fps), 4)) + '\n'
+    new_time1 += 'Total through mAP all classes: mAP@.75 - ' + str(format(float(map_overall_75), '.4f')) + '\n'
+    new_time1 += 'Average FPS: ' + str(format(float(avg_fps), '.4f')) + '\n'
 
     f.write(new_time1 + '\n')
 
