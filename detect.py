@@ -208,6 +208,7 @@ def run(
 
     # Print results
     t = tuple(x.t / seen * 1E3 for x in dt)  # speeds per image
+    LOGGER.info('FPS: '+str(1000/t[1]))
     LOGGER.info(f'Speed: %.1fms pre-process, %.1fms inference, %.1fms NMS per image at shape {(1, 3, *imgsz)}' % t)
     if save_txt or save_img:
         s = f"\n{len(list(save_dir.glob('labels/*.txt')))} labels saved to {save_dir / 'labels'}" if save_txt else ''
