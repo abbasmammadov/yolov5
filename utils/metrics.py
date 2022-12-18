@@ -183,6 +183,13 @@ class ConfusionMatrix:
         # fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
         return tp[:-1], fp[:-1]  # remove background class
 
+    def get_metrics(self):
+        tp = self.matrix.diagonal()  # true positives
+        fp = self.matrix.sum(1) - tp  # false positives
+        fn = self.matrix.sum(0) - tp  # false negatives (missed detections)
+        tn = self.matrix.sum().sum() - (tp + fp + fn)  # true negatives
+        return tp[:-1], fp[:-1], fn[:-1], tn[:-1]  # remove background class
+
     @TryExcept('WARNING ⚠️ ConfusionMatrix plot failure')
     def plot(self, normalize=True, save_dir='', names=()):
         import seaborn as sn
