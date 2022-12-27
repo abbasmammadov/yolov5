@@ -1,6 +1,9 @@
 """
 Usage - formats:
-$ python validate-railway-dataset.py --data rail_dec/data.yaml  --weights runs/train/exp3/weights/best.pt  --batch-size 1 --task test
+$ for railway dataset
+$ python validate-railway-dataset.py --data dataset_folder_railway  --weights railway.pt  --batch-size 1 --task test --data_type railway
+$ for catenary dataset
+$ python validate-railway-dataset.py --data dataset_folder_catenary  --weights catenary.pt  --batch-size 1 --task test --data_type catenary
 """
 
 import pandas as pd
@@ -118,6 +121,7 @@ def run(
         plots=True,
         callbacks=Callbacks(),
         compute_loss=None,
+        data_type='railway'
 ):
     # Initialize/load model and set device
     training = model is not None
@@ -251,7 +255,7 @@ def run(
         absolute_path = str(Path(paths[0]))
         current_path = os.getcwd()
         relative_path = os.path.relpath(absolute_path, current_path)
-
+        #print('batch_', batch_i)
         main_str = str(timeStamped()) + ' ' + str(relative_path) + '\n' + 'Detections --> '
         for i, detections_det in enumerate(pred_like_detect):  # per image
             im0 = cv2.imread(Path(paths[0]))
@@ -339,8 +343,8 @@ def run(
         
         # lets copy ap and store without reference
         ap_copy = ap.copy()
-        print('ap:', ap_copy)
-        print('ap_class:', ap_class)
+        #print('ap:', ap_copy)
+        #print('ap_class:', ap_class)
         # column_names = list_of_names
         # row_names = ["mAP@0.50", "mAP@0.55", "mAP@0.60", "mAP@0.65", "mAP@0.70", "mAP@0.75", "mAP@0.80", "mAP@0.85", "mAP@0.90", "mAP@0.95"]
 
@@ -386,6 +390,13 @@ def run(
 
 
 
+    category_info = []
+    if data_type == 'railway':
+        with open('railway_metadata.json', 'r') as curr_file:
+            category_info = json.load(curr_file)['categories']
+    else:
+        with open('catenary_metadata.json', 'r') as curr_file:
+            category_info = json.load(curr_file)['categories']
 
 
     TP, FP, FN, TN = confusion_matrix.get_metrics()
@@ -397,6 +408,7 @@ def run(
 
     new_time = str(timeStamped()) + '\n'
 
+    
     
     for class_name in list_of_names:
         class_index_current = list_of_names.index(class_name)
@@ -410,9 +422,12 @@ def run(
         current_class_total_predictions = tp_current + fp_current
         current_class_total_ground_truth = tp_current + fn_current
 
-        new_time +=  class_name + ': [TP - ' + str(tp_current) + ', FP - ' + str(fp_current) + ', FN - ' + str(fn_current) + ']\n'
-        new_time += 'Total number of Ground Truth objects: ' + str(current_class_total_ground_truth) + '\n'
-        new_time += 'Total number of Predicted objects: ' + str(current_class_total_predictions) + '\n'
+        
+        
+        if category_info[int(class_index_current/2)]['input_type'] == 'box':
+            new_time +=  class_name + ': [TP - ' + str(tp_current) + ', FP - ' + str(fp_current) + ', FN - ' + str(fn_current) + ']\n'
+            new_time += 'Total number of Ground Truth objects: ' + str(current_class_total_ground_truth) + '\n'
+            new_time += 'Total number of Predicted objects: ' + str(current_class_total_predictions) + '\n'
 
     
     # new_time += 'Total number of Ground Truth objects: ' + str(total_ground_truth) + '\n'
@@ -430,13 +445,21 @@ def run(
     #    ap_avg = ap_copy[class_index_current, :].mean()
     #    new_time1 +=  class_name + ': [AP@.75 - ' + str(format(float(ap_current_75), '.4f')) + ', AP@.50:.95 - ' + str(format(float(ap_avg), '.4f')) + ']\n'
 
+    map_overall = 0
+    map_overall_75 = 0
+    number = 0
     for i in range(0, len(ap_class)):
-        ap_current_75 = ap_copy[i, 5]
-        ap_avg = ap_copy[i, :].mean()
-        new_time1 +=  list_of_names[ap_class[i]] + ': [AP@.75 - ' + str(format(float(ap_current_75), '.4f')) + ', AP@.50:.95 - ' + str(format(float(ap_avg), '.4f')) + ']\n'
-
-    map_overall = ap_copy.mean()
-    map_overall_75 = ap_copy[: ,5].mean()
+        
+        if category_info[int(ap_class[i]/2)]['input_type'] == 'box':
+            ap_current_75 = ap_copy[i, 5]
+            ap_avg = ap_copy[i, :].mean()
+            new_time1 +=  list_of_names[ap_class[i]] + ': [AP@.75 - ' + str(format(float(ap_current_75), '.4f')) + ', AP@.50:.95 - ' + str(format(float(ap_avg), '.4f')) + ']\n'
+            map_overall_75 += ap_current_75
+            map_overall += ap_avg
+            number += 1
+    
+    map_overall /= number
+    map_overall_75 /= number
     avg_fps /= total
     new_time1 += 'Total through mAP all classes: mAP@.75 - ' + str(format(float(map_overall_75), '.4f')) + '\n'
     new_time1 += 'Average FPS: ' + str(format(float(avg_fps), '.4f')) + '\n'
@@ -486,14 +509,13 @@ def run(
     return (mp, mr, map50, map, *(loss.cpu() / len(dataloader)).tolist()), maps, t
 
 
-def convert_to_yolov5_format(root_folder):
+def convert_to_yolov5_format(root_folder, dataset_name):
     width=1920
     height=1080
     
     category_info = []
     category = []
-    #if dataset_name == 'railway':
-    if 1:
+    if dataset_name == 'railway':
         with open('railway_metadata.json', 'r') as curr_file:
             category_info = json.load(curr_file)['categories']
     else:
@@ -517,9 +539,9 @@ def convert_to_yolov5_format(root_folder):
     with open(os.path.join(root_folder, "data.yaml"), 'w') as f:
         f.write("path: " + root_folder)
         f.write("\n\n")
-        f.write("train: train")
+        f.write("train: ")
         f.write("\n")
-        f.write("val: val")
+        f.write("val: ")
         f.write("\n")
         f.write("test: test")
         f.write("\n\n")
@@ -664,12 +686,13 @@ def parse_opt():
     parser.add_argument('--exist-ok', action='store_true', help='existing project/name ok, do not increment')
     parser.add_argument('--half', action='store_true', help='use FP16 half-precision inference')
     parser.add_argument('--dnn', action='store_true', help='use OpenCV DNN for ONNX inference')
+    parser.add_argument('--data_type', type=str, default='railway', help='dataset.yaml path')
     opt = parser.parse_args()
     
     target_folder = opt.data
     if target_folder == "/":
         target_folder = target_folder[:-1]
-    convert_to_yolov5_format(target_folder)
+    convert_to_yolov5_format(target_folder, opt.data_type)
     opt.data = check_yaml(target_folder + "/data.yaml")  # check YAML
     opt.save_json |= opt.data.endswith('coco.yaml')
     opt.save_txt |= opt.save_hybrid
