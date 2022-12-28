@@ -1,14 +1,14 @@
 ## Installation
 !git clone https://github.com/ultralytics/yolov5 <br>
-!cd yolov5
+!cd yolov5 <br>
 !pip install -r requirements.txt 
 
 ## Pre-process the data
-We are assuming that the data has fixed labeling format similar to coco-annotations.
-unzip the file if it is zipped (sudo apt install p7zip-full)
+We are assuming that the data has fixed labeling format similar to coco-annotations. <br>
+unzip the file if it is zipped (sudo apt install p7zip-full) <br>
 
-!7z x folder_name.zip
-!preprocess.py folder_name
+!7z x folder_name.zip <br>
+!preprocess.py folder_name 
 
 
 ## Train
@@ -19,13 +19,13 @@ weights = [(--img 640) -> yolov5n.pt, yolov5s.pt, yolov5m.pt, yolov5l.pt, yolov5
 ## Validation
 One can simply use val.py for basic info. But we can use validate-railway-data.py for more details.
 
-for railway dataset
-!python3 validate-railway-dataset.py --data datasets/railway --data_type railway --weights railway_yolo.pt --task test
-for catenary dataset
+for railway dataset <br>
+!python3 validate-railway-dataset.py --data datasets/railway --data_type railway --weights railway_yolo.pt --task test <br>
+for catenary dataset <br>
 !python3 validate-railway-dataset.py --data datasets/catenary --data_type catenary --weights catenary_yolo.pt --task test
 
 ## Inference
-To write the results to the new file, add progress bar status, save both concatenated and resulting video in desired path's, use newdet.py. Otherwise detect.py
+To write the results to the new file, add progress bar status, save both concatenated and resulting video in desired path's, use newdet.py. Otherwise detect.py <br>
 
 !python detect.py(newdet.py) --weights [path_to_weights] --source [path_to_img/vod] --data [path_to_data.yaml] {lots of other arguments in the file}
 
