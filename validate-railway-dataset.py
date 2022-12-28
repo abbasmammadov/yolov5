@@ -49,7 +49,7 @@ def save_one_txt(predn, save_conf, shape, file):
     for *xyxy, conf, cls in predn.tolist():
         xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
         line = (cls, *xywh, conf) if save_conf else (cls, *xywh)  # label format
-        with open(file, 'a') as f:
+        with open(file, 'a', encoding='utf-8') as f:
             f.write(('%g ' * len(line)).rstrip() % line + '\n')
 
 
@@ -195,12 +195,16 @@ def run(
     callbacks.run('on_val_start')
     pbar = tqdm(dataloader, desc=s, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')  # progress bar
 
-    with open('test.txt', 'w') as f:
+    with open('test.txt', 'w', encoding='utf-8') as f:
         start_str = str(timeStamped()) + ' Inference Started!\n'
         f.write(start_str)
     
-    f = open('test.txt', 'a')
-    nd_str = str(timeStamped()) + ' python validate-railway-dataset.py --data path/to/data.yaml --weights path/to/weights --task test/or/val\n\n'
+    f = open('test.txt', 'a', encoding='utf-8')
+    nd_str = str(timeStamped())
+    if data_type == 'railway':
+        nd_str += ' python validate-railway-dataset.py --data datasets/railway --data_type railway --weights railway_yolo.pt --task test\n'
+    else:
+        nd_str += ' python validate-railway-dataset.py --data datasets/catenary --data_type catenary --weights catenary_yolo.pt --task test\n'
     f.write(nd_str)
     total_ground_truth = 0
     total_predicted = 0
@@ -392,10 +396,10 @@ def run(
 
     category_info = []
     if data_type == 'railway':
-        with open('railway_metadata.json', 'r') as curr_file:
+        with open('railway_metadata.json', 'r', encoding='utf-8') as curr_file:
             category_info = json.load(curr_file)['categories']
     else:
-        with open('catenary_metadata.json', 'r') as curr_file:
+        with open('catenary_metadata.json', 'r', encoding='utf-8') as curr_file:
             category_info = json.load(curr_file)['categories']
 
 
@@ -478,7 +482,7 @@ def run(
         anno_json = str(Path(data.get('path', '../coco')) / 'annotations/instances_val2017.json')  # annotations json
         pred_json = str(save_dir / f"{w}_predictions.json")  # predictions json
         LOGGER.info(f'\nEvaluating pycocotools mAP... saving {pred_json}...')
-        with open(pred_json, 'w') as f:
+        with open(pred_json, 'w', encoding='utf-8') as f:
             json.dump(jdict, f)
 
         try:  # https://github.com/cocodataset/cocoapi/blob/master/PythonAPI/pycocoEvalDemo.ipynb
@@ -516,10 +520,10 @@ def convert_to_yolov5_format(root_folder, dataset_name):
     category_info = []
     category = []
     if dataset_name == 'railway':
-        with open('railway_metadata.json', 'r') as curr_file:
+        with open('railway_metadata.json', 'r', encoding='utf-8') as curr_file:
             category_info = json.load(curr_file)['categories']
     else:
-        with open('catenary_metadata.json', 'r') as curr_file:
+        with open('catenary_metadata.json', 'r', encoding='utf-8') as curr_file:
             category_info = json.load(curr_file)['categories']
 
     for obj in category_info:
@@ -536,7 +540,7 @@ def convert_to_yolov5_format(root_folder, dataset_name):
     for i in range(len(category)):
         cat[str(category[i])] = i
 
-    with open(os.path.join(root_folder, "data.yaml"), 'w') as f:
+    with open(os.path.join(root_folder, "data.yaml", encoding='utf-8'), 'w') as f:
         f.write("path: " + root_folder)
         f.write("\n\n")
         f.write("train: ")
@@ -567,10 +571,10 @@ def convert_to_yolov5_format(root_folder, dataset_name):
             labeling[files_without_suffix[i]] = i
 
         for file in files_without_suffix: 
-            wrt = open(output_label + file + ".txt", "w")
+            wrt = open(output_label + file + ".txt", "w", encoding='utf-8')
             width = width
             height = height
-            with open(mypath_label + file + '.json', 'r') as curr_file:
+            with open(mypath_label + file + '.json', 'r', encoding='utf-8') as curr_file:
                 curr = json.load(curr_file)
             list_img = curr['annotations']
             for i in range(len(list_img)):
