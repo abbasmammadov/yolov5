@@ -1,11 +1,10 @@
 """
 Usage - formats:
 $ for railway dataset
-$ python validate-railway-dataset.py --data dataset_folder_railway  --weights railway.pt  --batch-size 1 --task test --data_type railway
+$ python3 validate-railway-dataset.py --data datasets/railway --data_type railway --weights railway_yolo.pt --task test
 $ for catenary dataset
-$ python validate-railway-dataset.py --data dataset_folder_catenary  --weights catenary.pt  --batch-size 1 --task test --data_type catenary
+$ python3 validate-railway-dataset.py --data datasets/catenary --data_type catenary --weights catenary_yolo.pt --task test
 """
-
 import pandas as pd
 import argparse
 import json
@@ -203,9 +202,9 @@ def run(
     f = open(result_path, 'a', encoding='utf-8')
     nd_str = str(timeStamped())
     if data_type == 'railway':
-        nd_str += ' python validate-railway-dataset.py --data datasets/railway --data_type railway --weights railway_yolo.pt --task test\n'
+        nd_str += ' python3 validate-railway-dataset.py --data datasets/railway --data_type railway --weights railway_yolo.pt --task test\n'
     else:
-        nd_str += ' python validate-railway-dataset.py --data datasets/catenary --data_type catenary --weights catenary_yolo.pt --task test\n'
+        nd_str += ' python3 validate-railway-dataset.py --data datasets/catenary --data_type catenary --weights catenary_yolo.pt --task test\n'
     f.write(nd_str)
     total_ground_truth = 0
     total_predicted = 0
@@ -541,7 +540,7 @@ def convert_to_yolov5_format(root_folder, dataset_name):
     for i in range(len(category)):
         cat[str(category[i])] = i
 
-    with open(os.path.join(root_folder, "data.yaml", encoding='utf-8'), 'w') as f:
+    with open(os.path.join(root_folder, "data.yaml"), 'w', encoding='utf-8') as f:
         f.write("path: " + root_folder)
         f.write("\n\n")
         f.write("train: ")
