@@ -195,11 +195,12 @@ def run(
     callbacks.run('on_val_start')
     pbar = tqdm(dataloader, desc=s, bar_format='{l_bar}{bar:10}{r_bar}{bar:-10b}')  # progress bar
 
-    with open('test.txt', 'w', encoding='utf-8') as f:
+    result_path = 'result_' + data_type + '.txt'
+    with open(result_path, 'w', encoding='utf-8') as f:
         start_str = str(timeStamped()) + ' Inference Started!\n'
         f.write(start_str)
     
-    f = open('test.txt', 'a', encoding='utf-8')
+    f = open(result_path, 'a', encoding='utf-8')
     nd_str = str(timeStamped())
     if data_type == 'railway':
         nd_str += ' python validate-railway-dataset.py --data datasets/railway --data_type railway --weights railway_yolo.pt --task test\n'
